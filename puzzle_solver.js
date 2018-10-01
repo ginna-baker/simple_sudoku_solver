@@ -1,4 +1,9 @@
-const _ = require('lodash')
+// TO RUN THE PUZZLE SOLVER:
+// On the command line,
+// node puzzle_solver --starter=value,value,etc
+// Note: all empty squares must have undefined or null
+
+const _ = require('lodash');
 const minimist = require('minimist');
 
 const args = minimist(process.argv.slice(2));
@@ -6,27 +11,11 @@ const example1 = [
   undefined, undefined, undefined,
   undefined, 2, undefined,
   undefined, undefined, 3,
-]
-// call the solver with:
-// node puzzle_solver --starter=value,value,etc
-// Note: ensure that empty squares have undefined or null in them
-let puzzleValues;
-if (args.starter) {
-  puzzleValues = args.starter.split(",");
-} else {
-  puzzleValues = example1;
-}
+];
+
 const SET_TYPE_ROW = 'row';
 const SET_TYPE_COLUMN = 'column';
 // const SET_TYPE_SQUARE = 'square';
-
-// TODO: let it solve 9x9 and later other sizes
-// Incorporate the concept of squares.  For 3x3, for example, each sq would just be 1 cell, right?
-// is the square size just the sq root of the side length?  like would a sudoku of 16 have sq size of 4x4?
-// getting into the weeds here, but are all sudokus perfect squares?
-// Incorporate an error for unsolvable puzzle
-// Incorporate an error for less than the minimum number of clues (numbers shown here at https://en.wikipedia.org/wiki/Mathematics_of_Sudoku#Enumerating_all_possible_Sudoku_solutions)
-// could I calculate thses minimums myself?  Not sure what goes into that calculation
 
 const sideLength = 3;
 const allPossibilities = _.range(1, sideLength + 1);
@@ -50,13 +39,19 @@ class Cell {
   }
 }
 
+/**
+ * Build puzzle from command line args
+ */
 createPuzzle = () => {
-  // const values = example1;
-  const sideLength = 3;
+  let puzzleValues;
+  if (args.starter) {
+    puzzleValues = args.starter.split(",");
+  } else {
+    puzzleValues = example1;
+  }
 
-  // feed in values array to show determined values.
-  // undefined will be placeholder for undetermined values
-  // make sure values length = the product of length and width
+  const sideLength = Math.sqrt(puzzleValues.length);
+
   if (puzzleValues.length != _.multiply(sideLength, sideLength)) {
     throw new Error('Wrong number of cells');
   }
@@ -105,14 +100,15 @@ setPossibilities = ((index, type) => {
   // get all values that already exist in that row
   const numsToEliminate = _.map(
     _.filter(cellGroup, (cell) => {
-    return !_.isNil(cell.value)}), 'value');
+      return !_.isNil(cell.value);
+    }), 'value');
 
   // narrow down cell possibilities by removing numbers already in the row
   _.forEach(cellGroup, (cell) => {
     if (_.isNil(cell.value)) {
-      cell.possibilities = _.difference(cell.possibilities, numsToEliminate)
+      cell.possibilities = _.difference(cell.possibilities, numsToEliminate);
     }
-  })
+  });
 });
 
 // recursively narrow down possibilities to solution
@@ -125,14 +121,14 @@ solvePuzzle = () => {
   });
 
   _.forEach(indices, (i) => {
-    setPossibilities(i, SET_TYPE_ROW)
-    setPossibilities(i, SET_TYPE_COLUMN)
+    setPossibilities(i, SET_TYPE_ROW);
+    setPossibilities(i, SET_TYPE_COLUMN);
     // setPossibilities(i, SET_TYPE_SQUARE)
-  })
+  });
 
   // set values for cells with only 1 possibility
-  // runAgain if cell has more than 1 possibility
-  // throw error if cell has 0 possibilities
+  // runAgain if any cell has more than 1 possibility
+  // throw error if cell has no value and 0 possibilities
   _.forEach(cells, (cell) => {
     if (cell.possibilities.length == 1) {
       cell.value = _.first(cell.possibilities);
@@ -141,13 +137,22 @@ solvePuzzle = () => {
     } else if (cell.possibilities.length == 0 && !cell.value) {
       throw new Error('Faulty puzzle: a cell has 0 possible values');
     }
-  })
+  });
 
   if (runAgain) {
-    solvePuzzle()
+    solvePuzzle();
   }
 },
 
 createPuzzle();
 solvePuzzle();
 console.log(_.map(cells, 'value'), 'solution');
+
+
+// TODO: let it solve 9x9 and later other sizes
+// Incorporate the concept of squares.  For 3x3, for example, each sq would just be 1 cell, right?
+// is the square size just the sq root of the side length?  like would a sudoku of 16 have sq size of 4x4?
+// getting into the weeds here, but are all sudokus perfect squares?
+// Incorporate an error for unsolvable puzzle
+// Incorporate an error for less than the minimum number of clues (numbers shown here at https://en.wikipedia.org/wiki/Mathematics_of_Sudoku#Enumerating_all_possible_Sudoku_solutions)
+// could I calculate thses minimums myself?  Not sure what goes into that calculation
