@@ -16,6 +16,9 @@ if (args.starter) {
 } else {
   puzzleValues = example1;
 }
+const SET_TYPE_ROW = 'row';
+const SET_TYPE_COLUMN = 'column';
+// const SET_TYPE_SQUARE = 'square';
 
 // TODO: let it solve 9x9 and later other sizes
 // Incorporate the concept of squares.  For 3x3, for example, each sq would just be 1 cell, right?
@@ -85,22 +88,58 @@ createPuzzle = () => {
   });
 },
 
+
+/**
+ * @index Number: row or column number to examine
+ * @type string: "row", "column", or "square"
+ *
+ * Assumption: cellGroup can contain each value only ONCE
+ *    Check which values already exist in the cellGroup
+ *    Eliminate those values from the other cells in the group
+ */
+setPossibilities = ((index, type) => {
+  const cellGroup = _.filter(cells, (cell) => {
+    return cell[type] == index;
+  });
+
+  // get all values that already exist in that row
+  const numsToEliminate = _.map(
+    _.filter(cellGroup, (cell) => {
+    return !_.isNil(cell.value)}), 'value');
+
+  // narrow down cell possibilities by removing numbers already in the row
+  _.forEach(cellGroup, (cell) => {
+    if (_.isNil(cell.value)) {
+      cell.possibilities = _.difference(cell.possibilities, numsToEliminate)
+    }
+  })
+});
+
 // recursively narrow down possibilities to solution
 solvePuzzle = () => {
   let runAgain = false;
 
-  _.forEach([0, 1, 2], (num) => {
-    setRowPossibilities(num)
-    setColumnPossibilities(num)
+  // rows and columns are 0-indexed
+  const indices = _.map(allPossibilities, (p) => {
+    return p - 1;
+  });
+
+  _.forEach(indices, (i) => {
+    setPossibilities(i, SET_TYPE_ROW)
+    setPossibilities(i, SET_TYPE_COLUMN)
+    // setPossibilities(i, SET_TYPE_SQUARE)
   })
 
+  // set values for cells with only 1 possibility
+  // runAgain if cell has more than 1 possibility
+  // throw error if cell has 0 possibilities
   _.forEach(cells, (cell) => {
     if (cell.possibilities.length == 1) {
       cell.value = _.first(cell.possibilities);
-    } else {
-      if (cell.possibilities.length > 1) {
+    } else if (cell.possibilities.length > 1) {
         runAgain = true;
-      }
+    } else if (cell.possibilities.length == 0 && !cell.value) {
+      throw new Error('Faulty puzzle: a cell has 0 possible values');
     }
   })
 
@@ -109,55 +148,6 @@ solvePuzzle = () => {
   }
 },
 
-getAllPossibilities = () => {
-  // for each cell:
-  // get row possibilities
-  // get column possibilities
-  // find overlap
-},
-
-//Todo: create reusable function for both row and column
-
-// if a number already exists in the row
-// remove that number from the possibilities arrays of the other cells
-setRowPossibilities = (rowNumber) => {
-  const rowCells = _.filter(cells, (cell) => {
-    return cell.row == rowNumber;
-  });
-
-  // get all values that already exist in that row
-  const numsToEliminate = _.map(
-    _.filter(rowCells, (cell) => {
-    return !_.isNil(cell.value)}), 'value');
-
-  // narrow down cell possibilities by removing numbers already in the row
-  _.forEach(rowCells, (cell) => {
-    if (_.isNil(cell.value)) {
-      cell.possibilities = _.difference(cell.possibilities, numsToEliminate)
-    }
-  })
-},
-setColumnPossibilities = (columnNumber) => {
-  const columnCells = _.filter(cells, (cell) => {
-    return cell.column == columnNumber;
-  });
-
-  // get all values that already exist in that column
-  const numsToEliminate = _.map(
-    _.filter(columnCells, (cell) => {
-      return !_.isNil(cell.value)
-    }),
-  'value');
-
-  // narrow down cell possibilities by removing numbers already in the row
-  _.forEach(columnCells, (cell) => {
-    if (_.isNil(cell.value)) {
-      cell.possibilities = _.difference(cell.possibilities, numsToEliminate)
-    }
-  })
-}
-
-  // setSquarePossibilities: () => {};
 createPuzzle();
 solvePuzzle();
 console.log(_.map(cells, 'value'), 'solution');
