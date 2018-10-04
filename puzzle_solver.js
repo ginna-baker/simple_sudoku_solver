@@ -1,5 +1,6 @@
 const _ = require('lodash');
 const minimist = require('minimist');
+const testPuzzle = require('../spec/test_puzzles.json');
 
 // TO RUN THE PUZZLE SOLVER:
 // On the command line,
@@ -7,27 +8,9 @@ const minimist = require('minimist');
 // Note: all empty squares must have a value of 0, undefined or null
 
 const args = minimist(process.argv.slice(2));
-// 3x3
-// const example1 = [
-//   undefined, undefined, undefined,
-//   undefined, 2, undefined,
-//   undefined, undefined, 3,
-// ];
-
-// 9x9
-const example1 = [
-  5, 3, 0, 0, 7, 0, 0, 0, 0,
-  6, 0, 0, 1, 9, 5, 0, 0, 0,
-  0, 9, 8, 0, 0, 0, 0, 6, 0,
-
-  8, 0, 0, 0, 6, 0, 0, 0, 3,
-  4, 0, 0, 8, 0, 3, 0, 0, 1,
-  7, 0, 0, 0, 2, 0, 0, 0, 6,
-
-  0, 6, 0, 0, 0, 0, 2, 8, 0,
-  0, 0, 0, 4, 1, 9, 0, 0, 5,
-  0, 0, 0, 0, 8, 0, 0, 7, 9,
-];
+// 9x9 example
+const example = testPuzzle[0].puzzle.split('');
+const example1 = _.map(example, (e) => { return parseInt(e) })
 
 const SET_TYPE_ROW = 'row';
 const SET_TYPE_COLUMN = 'column';
@@ -60,18 +43,23 @@ class Cell {
 /**
  * Build puzzle from command line args
  */
-createPuzzle = () => {
+createPuzzle = (values) => {
   let puzzleValues;
-  if (args.starter) {
-    puzzleValues = args.starter.split(",");
-  } else {
-    puzzleValues = example1;
-  }
+  // if (args.starter) {
+    // puzzleValues = args.starter.split(",");
+  // } else {
+    // if (!values.length) {
+      // puzzleValues = example1;
+    // } else {
+    puzzleValues = values;
+    // }
+  // }
 
   const sideLength = Math.sqrt(puzzleValues.length);
 
   // for square puzzles: ensure the side had a square root
-  if (sideLength > 3 && Math.sqrt(sideLength) % 1 != 0) {
+  const sqLength = Math.sqrt(sideLength);
+  if (sqLength % 1 != 0) {
     throw new Error('Wrong number of cells. Puzzle can\'t create squares.');
   }
 
@@ -104,7 +92,8 @@ createPuzzle = () => {
     // unless we reset the column to 0.  Then,
     // every third row, the square number should either increase or go back to the 'adder',
     // which represents the left-hand square number for the current row.
-    // for example, rows 0, 1, and 2 start in sq 0
+    // for example, in a 9x9,
+    // rows 0, 1, and 2 start in sq 0
     // rows 3, 4, and 5 all start in square 3
 
     // column keeps incrementing
@@ -120,7 +109,7 @@ createPuzzle = () => {
       rowNumber++;
 
       // every 3 rows, increment square baseline
-      if (rowNumber % 3 === 0) {
+      if (rowNumber % sqLength === 0) {
         adder = rowNumber;
         squareNumber = adder;
       }
@@ -174,8 +163,6 @@ solvePuzzle = () => {
   // set values for cells with only 1 possibility
   // runAgain if any cell has more than 1 possibility
   // throw error if cell has no value and 0 possibilities
-  // console.log(cells, 'cells')
-  // throw new Error('ff')
   _.forEach(cells, (cell) => {
     if (cell.possibilities.length == 1) {
       cell.value = _.first(cell.possibilities);
@@ -189,11 +176,13 @@ solvePuzzle = () => {
   if (runAgain) {
     solvePuzzle();
   }
-},
 
-createPuzzle();
-solvePuzzle();
-console.log(_.map(cells, 'value'), 'solution');
+  return _.map(cells, 'value');
+}
+
+// createPuzzle();
+// solvePuzzle();
+// console.log(_.map(cells, 'value'), 'solution');
 
 
 // TODO: let it solve 9x9 and later other sizes
@@ -203,3 +192,4 @@ console.log(_.map(cells, 'value'), 'solution');
 // Incorporate an error for unsolvable puzzle
 // Incorporate an error for less than the minimum number of clues (numbers shown here at https://en.wikipedia.org/wiki/Mathematics_of_Sudoku#Enumerating_all_possible_Sudoku_solutions)
 // could I calculate thses minimums myself?  Not sure what goes into that calculation
+module.exports = {createPuzzle, solvePuzzle};
