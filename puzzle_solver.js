@@ -7,6 +7,7 @@ const minimist = require('minimist');
 // Note: all empty squares must have a value of 0, undefined or null
 
 const args = minimist(process.argv.slice(2));
+// 3x3
 // const example1 = [
 //   undefined, undefined, undefined,
 //   undefined, 2, undefined,
@@ -14,38 +15,19 @@ const args = minimist(process.argv.slice(2));
 // ];
 
 // 9x9
-// const example1 = [
-//   5, 3, undefined,
-//   6, undefined, undefined,
-//   undefined, 9, 8,
-// ];
-
 const example1 = [
-  5, 3, 4, 6, 7, 8, 9, 1, 2,
-  6, 0, 0, 1, 9, 5, 3, 4, 8,
-  1, 9, 8, 3, 4, 2, 5, 6, 7,
+  5, 3, 0, 0, 7, 0, 0, 0, 0,
+  6, 0, 0, 1, 9, 5, 0, 0, 0,
+  0, 9, 8, 0, 0, 0, 0, 6, 0,
 
-  8, 5, 9, 7, 6, 1, 4, 2, 3,
-  4, 2, 6, 8, 5, 3, 7, 9, 1,
-  7, 1, 3, 9, 2, 4, 8, 5, 6,
+  8, 0, 0, 0, 6, 0, 0, 0, 3,
+  4, 0, 0, 8, 0, 3, 0, 0, 1,
+  7, 0, 0, 0, 2, 0, 0, 0, 6,
 
-  9, 6, 1, 5, 3, 7, 2, 8, 4,
-  2, 8, 7, 4, 1, 9, 6, 3, 5,
-  3, 4, 5, 2, 8, 6, 1, 7, 9,
-]
-// const example1 = [
-//   5, 3, 0, 0, 7, 0, 0, 0, 0,
-//   6, 0, 0, 1, 9, 5, 0, 0, 0,
-//   0, 9, 8, 0, 0, 0, 0, 6, 0,
-
-//   8, 0, 0, 0, 6, 0, 0, 0, 3,
-//   4, 0, 0, 8, 0, 3, 0, 0, 1,
-//   7, 0, 0, 0, 2, 0, 0, 0, 6,
-
-//   0, 6, 0, 0, 0, 0, 2, 8, 0,
-//   0, 0, 0, 4, 1, 9, 0, 0, 5,
-//   0, 0, 0, 0, 8, 0, 0, 7, 9,
-// ]
+  0, 6, 0, 0, 0, 0, 2, 8, 0,
+  0, 0, 0, 4, 1, 9, 0, 0, 5,
+  0, 0, 0, 0, 8, 0, 0, 7, 9,
+];
 
 const SET_TYPE_ROW = 'row';
 const SET_TYPE_COLUMN = 'column';
@@ -86,12 +68,13 @@ createPuzzle = () => {
     puzzleValues = example1;
   }
 
-  const sideLength = Math.sqrt(puzzleValues.length)
-  let sqLength;
-  if (Math.sqrt(sideLength) % 1 === 0) {
-    console.log('even square number')
-    sqLength = Math.sqrt(sideLength);
+  const sideLength = Math.sqrt(puzzleValues.length);
+
+  // for square puzzles: ensure the side had a square root
+  if (sideLength > 3 && Math.sqrt(sideLength) % 1 != 0) {
+    throw new Error('Wrong number of cells. Puzzle can\'t create squares.');
   }
+
   allPossibilities = _.range(1, sideLength + 1);
 
   if (puzzleValues.length != _.multiply(sideLength, sideLength)) {
@@ -114,7 +97,6 @@ createPuzzle = () => {
       value,
       possibilities,
     );
-
     cells.push(cell);
 
     // moving from left to right (increase column), then top to bottom (increase row)
@@ -140,6 +122,7 @@ createPuzzle = () => {
       // every 3 rows, increment square baseline
       if (rowNumber % 3 === 0) {
         adder = rowNumber;
+        squareNumber = adder;
       }
     }
   });
@@ -154,27 +137,19 @@ createPuzzle = () => {
  *    Eliminate those values from the other cells in the group
  */
 setPossibilities = ((index, type) => {
-  console.log('called set possibilities')
   const cellGroup = _.filter(cells, (cell) => {
-    return cell[type] == index;
+    return cell[type] === index;
   });
 
-  // console.log(cellGroup, 'cg')
-  // console.log(cellGroup.length)
-  const n = _.filter(cellGroup, (cell) => {
-    // console.log(cell, 'c')
+  const cellsWithValues = _.filter(cellGroup, (cell) => {
     return !!cell.value;
-  })
-  // console.log(n, n.length, 'n')
-  // throw new Error('n')
-  // get all values that already exist in that group
-  // console.log(cellGroup, 'gr')
-  const numsToEliminate = _.map(n, 'value');
-  // console.log(numsToEliminate, 'nums to eliminate')
+  });
 
-  // narrow down cell possibilities by removing numbers already in the group
+  const numsToEliminate = _.map(cellsWithValues, 'value');
+
+  // Process of elimination:
+  // Removing values already in the group from other group cells' possibilities array
   _.forEach(cellGroup, (cell) => {
-    // console.log(cell)
     if (!cell.value) {
       cell.possibilities = _.difference(cell.possibilities, numsToEliminate);
     }
@@ -193,7 +168,7 @@ solvePuzzle = () => {
   _.forEach(indices, (i) => {
     setPossibilities(i, SET_TYPE_ROW);
     setPossibilities(i, SET_TYPE_COLUMN);
-    setPossibilities(i, SET_TYPE_SQUARE)
+    setPossibilities(i, SET_TYPE_SQUARE);
   });
 
   // set values for cells with only 1 possibility
@@ -202,7 +177,6 @@ solvePuzzle = () => {
   // console.log(cells, 'cells')
   // throw new Error('ff')
   _.forEach(cells, (cell) => {
-    // console.log(cell)
     if (cell.possibilities.length == 1) {
       cell.value = _.first(cell.possibilities);
     } else if (cell.possibilities.length > 1) {
