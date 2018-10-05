@@ -113,11 +113,14 @@ class PuzzleSolver {
     });
 
     const numsToEliminate = _.map(cellsWithValues, 'value');
+    if (_.uniq(numsToEliminate).length != numsToEliminate.length) {
+      throw new Error('Unsolvable: The original puzzle has wrong values.');
+    }
 
     // Process of elimination:
     // Removing values already in the group from other group cells' possibilities array
     _.forEach(cellGroup, (cell) => {
-      if (!cell.value) {
+      if (cell.value === 0) {
         cell.possibilities = _.difference(cell.possibilities, numsToEliminate);
       }
     });
@@ -144,6 +147,7 @@ class PuzzleSolver {
     _.forEach(this.cells, (cell) => {
       if (cell.possibilities.length == 1) {
         cell.value = _.first(cell.possibilities);
+        cell.possibilities = [];
       } else if (cell.possibilities.length > 1) {
           runAgain = true;
       } else if (cell.possibilities.length == 0 && !cell.value) {
@@ -154,6 +158,12 @@ class PuzzleSolver {
     if (runAgain) {
       this.solvePuzzle();
     }
+
+    // TODO: teach it to solve puzzles that don't provide enough info -- guess and check
+      // add number, see if it breaks anything
+      // if not, add another number, see if it breaks anything
+      // so on
+      // keep safe place to fall back to.  How would this work?
 
     return _.map(this.cells, 'value');
   }
