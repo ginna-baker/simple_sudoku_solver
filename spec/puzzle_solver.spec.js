@@ -1,25 +1,23 @@
-const testPuzzle = require('./test_puzzles.json');
-const solver = require('../puzzle_solver');
+const testPuzzles = require('./test_puzzles.json');
+const PuzzleSolver = require('../puzzle_solver');
 const _ = require('lodash');
 
-const example9x9 = testPuzzle[0].puzzle.split('')
+// format puzzle input
+const example9x9 = testPuzzles.solvable[0].puzzle.split('');
 const parsedExample9x9 = _.map(example9x9, (e) => { return parseInt(e) })
+const solution9x9 = testPuzzles.solvable[0].solution;
 
 describe("Solver", () => {
 
   it("should solve a basic 9x9", () => {
-    // format puzzle input
-    const example = testPuzzle[0].puzzle.split('');
-    const example1 = _.map(example, (e) => { return parseInt(e) })
-
-    solver.createPuzzle(parsedExample9x9);
-    const solution = solver.solvePuzzle().join('');
-
-    expect(solution).toEqual(testPuzzle[0].solution);
+    const solver = new PuzzleSolver(parsedExample9x9)
+    const result = solver.solvePuzzle().join('');
+    expect(result).toEqual(solution9x9);
   });
 
   it('should throw an error for non-square puzzles', () => {
-
+    const solver = new PuzzleSolver(parsedExample9x9);
+    // solver.createPuzzle(parsedExample9x9);
   });
 
   it('should throw an error for a puzzle side without square root', () => {
