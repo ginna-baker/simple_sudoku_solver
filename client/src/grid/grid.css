@@ -1,7 +1,8 @@
 .grid {
+  width: 40rem;
+  height: 50rem;
+  padding-top: 1rem;
   background-color: green;
-  width: 38rem;
-  height: 40rem;
 
   display:flex;
   justify-content: center;

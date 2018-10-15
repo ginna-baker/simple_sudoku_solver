@@ -1,0 +1,37 @@
+.cell {
+  height: 3.5rem;
+  width: 4rem;
+  /* padding-top: 10px; */
+  /* padding-bottom: 0; */
+  padding-left: 0;
+  padding-right: 0;
+  background-color: white;
+  color: black;
+  border: 1px solid black;
+  font-size: 26px;
+}
+
+.filled {
+  padding-top: 15px;
+}
+
+input {
+  padding-bottom: 14px;
+  /* font-size: 22px; */
+
+}
+
+/* SET BORDERS OF SQUARES */
+/* cells are counted from left to right,
+not top to bottom */
+.cell:nth-child(3n) {
+  border-right: 2px solid red;
+}
+
+.cell:nth-child(n+19):nth-child(-n+27) {
+  border-bottom: 2px solid red;
+}
+
+.cell:nth-child(n+46):nth-child(-n+54) {
+  border-bottom: 2px solid red;
+}
