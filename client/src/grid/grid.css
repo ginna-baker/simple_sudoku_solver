@@ -1,0 +1,10 @@
+.grid {
+  background-color: green;
+  width: 38rem;
+  height: 40rem;
+
+  display:flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  align-content: start;
+}

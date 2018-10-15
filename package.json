@@ -19,7 +19,7 @@
     "nodemon": "^1.18.4"
   },
   "devDependencies": {
-    "eslint": "^5.6.1",
+    "eslint": "5.6.0",
     "jasmine": "^3.2.0"
   }
 }
