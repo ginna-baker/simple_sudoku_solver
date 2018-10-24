@@ -1,0 +1,23 @@
+.sidebar {
+  /* Position sidebar box */
+  top: 10rem;
+  left: 30rem;
+  height:20rem;
+  width: 20rem;
+  position: fixed;
+  background-color: green;
+
+  /* Position items inside sidebar box */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+button {
+  color: white;
+  background-color: red;
+  border-color: red;
+  width: 15rem;
+  font-size: 36px;
+  margin: 1.5rem;
+}
